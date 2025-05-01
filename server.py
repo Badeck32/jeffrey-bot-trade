@@ -1,3 +1,4 @@
+# ✅ server.py PATCHÉ POUR BITGET (Signature FIX)
 from flask import Flask, request, jsonify
 import requests
 import hmac
@@ -14,10 +15,10 @@ API_PASSPHRASE = os.getenv("API_PASSPHRASE")
 BASE_URL = 'https://api.bitget.com'
 
 def generate_signature(timestamp, method, request_path, body=''):
-    prehash = f'{timestamp}{method.upper()}{request_path}{body}'
+    message = f"{timestamp}{method.upper()}{request_path}{body}"
     signature = hmac.new(
         API_SECRET.encode('utf-8'),
-        prehash.encode('utf-8'),
+        message.encode('utf-8'),
         hashlib.sha256
     ).hexdigest()
     return signature
@@ -25,9 +26,10 @@ def generate_signature(timestamp, method, request_path, body=''):
 def get_balance():
     timestamp = str(int(time.time() * 1000))
     path = '/api/mix/v1/account/accounts?productType=umcbl'
+    signature = generate_signature(timestamp, 'GET', path)
     headers = {
         'ACCESS-KEY': API_KEY,
-        'ACCESS-SIGN': generate_signature(timestamp, 'GET', path),
+        'ACCESS-SIGN': signature,
         'ACCESS-TIMESTAMP': timestamp,
         'ACCESS-PASSPHRASE': API_PASSPHRASE,
     }
@@ -38,7 +40,10 @@ def get_balance():
         return 0
     for account in data['data']:
         if account['marginCoin'] == 'USDT':
-            return float(account['available'])
+            balance = float(account['available'])
+            print(f"Balance USDT trouvée: {balance}")
+            return balance
+    print("Pas de balance USDT trouvée.")
     return 0
 
 def place_order(side, symbol, risk_pct=0.05, leverage=20):
@@ -66,9 +71,12 @@ def place_order(side, symbol, risk_pct=0.05, leverage=20):
         "openType": "cross",
     }
     body_json = json.dumps(body)
+
+    signature = generate_signature(timestamp, 'POST', path, body_json)
+
     headers = {
         'ACCESS-KEY': API_KEY,
-        'ACCESS-SIGN': generate_signature(timestamp, 'POST', path, body_json),
+        'ACCESS-SIGN': signature,
         'ACCESS-TIMESTAMP': timestamp,
         'ACCESS-PASSPHRASE': API_PASSPHRASE,
         'Content-Type': 'application/json'
@@ -82,11 +90,17 @@ def place_order(side, symbol, risk_pct=0.05, leverage=20):
 def webhook():
     try:
         data = request.get_json(force=True)
-        print(f"Webhook reçu : {data}")
+        if data is None:
+            return "Invalid payload", 400
+
         side = data.get("side")
         symbol = data.get("symbol")
+
         if not side or not symbol:
-            return "Invalid payload", 400
+            return "Missing side or symbol", 400
+
+        print(f"Webhook reçu : {data}")
+
         result = place_order(side, symbol)
         return jsonify(result)
     except Exception as e:
@@ -95,3 +109,4 @@ def webhook():
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=80)
+
