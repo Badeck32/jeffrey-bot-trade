@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: jeffrey-bot-trade
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn server:app
+    envVars:
+      - key: API_KEY
+        value: bg_98f10a54970d7bc1832dd8dfa97f134a
+      - key: API_SECRET
+        value: 6e12f31e3c17bf7e8ca474d3295bc958702ed132fc4fec7538dec0f5c8ce9770
+      - key: API_PASSPHRASE
+        value: hjk2x846
