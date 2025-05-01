@@ -4,6 +4,7 @@ services:
     env: python
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn server:app
+
     envVars:
       - key: API_KEY
         value: bg_98f10a54970d7bc1832dd8dfa97f134a
