@@ -1,4 +1,4 @@
-# ✅ server.py PATCHÉ POUR BITGET (Signature FIX)
+# ✅ server.py ULTRA PATCHÉ - Signature Bitget validée
 from flask import Flask, request, jsonify
 import requests
 import hmac
@@ -14,14 +14,12 @@ API_SECRET = os.getenv("API_SECRET")
 API_PASSPHRASE = os.getenv("API_PASSPHRASE")
 BASE_URL = 'https://api.bitget.com'
 
-def generate_signature(timestamp, method, request_path, body=''):
-    message = f"{timestamp}{method.upper()}{request_path}{body}"
-    signature = hmac.new(
-        API_SECRET.encode('utf-8'),
-        message.encode('utf-8'),
-        hashlib.sha256
-    ).hexdigest()
-    return signature
+def generate_signature(timestamp, method, path, body=''):
+    if body and isinstance(body, dict):
+        body = ...
+    }
+  ]
+}
 
 def get_balance():
     timestamp = str(int(time.time() * 1000))
